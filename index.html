@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0c4a2b">
+<title>Menu</title>
+<style>
+@font-face { font-family: 'Yatra One'; src: url(fonts/yatra-one-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-display: swap; }
+:root { --green: #0c4a2b; --green-d: #062c19; --gold: #f4b400; --red: #c8261b; --cream: #fff1cf; --paper: #fffdf6; --ink: #1d2b22; --muted: #5f6b60; --line: #e8d9a8; }
+* { box-sizing: border-box; }
+html { background: var(--green); }
+body { margin: 0; min-height: 100vh; font: 500 17px/1.35 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: var(--ink); background: var(--green); }
+.hero { text-align: center; padding: 28px 20px 22px; color: var(--cream); }
+.hero h1 { margin: 0; font: 400 clamp(48px, 15vw, 72px)/1 'Yatra One', Georgia, serif; color: var(--gold); text-shadow: 3px 3px 0 var(--red); }
+.hero p { margin: 10px 0 0; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: 13px; opacity: .92; }
+.stall { display: inline-block; margin-top: 12px; padding: 4px 14px; border-radius: 999px; background: var(--gold); color: #2b2100; font-weight: 800; font-size: 15px; }
+main { max-width: 640px; margin: 0 auto; padding: 0 16px 28px; display: grid; gap: 14px; }
+.item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; padding: 16px 18px; background: linear-gradient(#fff6dc, #ffe6a6); border: 3px solid var(--gold); border-radius: 20px; box-shadow: 0 0 0 3px var(--red), 0 7px 0 3px rgba(0, 0, 0, .18); margin: 3px; }
+.item h2 { margin: 0; font: 400 clamp(24px, 6.5vw, 30px)/1.1 'Yatra One', Georgia, serif; color: var(--red); overflow-wrap: anywhere; }
+.item .sub { grid-column: 1; font-weight: 700; color: var(--green); }
+.item .price { grid-column: 2; grid-row: 1 / span 2; font-weight: 800; font-size: 28px; font-variant-numeric: tabular-nums; align-self: center; }
+.item.out { background: #ece8d8; border-color: #bdb79f; box-shadow: 0 0 0 3px #bdb79f; }
+.item.out h2, .item.out .sub, .item.out .price { color: #7a7662; }
+.item.out .price { text-decoration: line-through; font-weight: 700; }
+.badge { grid-column: 1 / -1; justify-self: start; margin-top: 4px; padding: 2px 12px; border-radius: 999px; background: var(--red); color: #fff; font-weight: 800; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+.empty { text-align: center; color: var(--cream); font-weight: 700; padding: 30px 10px; }
+footer { text-align: center; color: var(--cream); padding: 6px 20px 36px; font-size: 14px; font-weight: 600; opacity: .9; display: grid; gap: 4px; }
+footer b { color: var(--gold); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<header class="hero">
+  <h1 id="name">desi swad</h1>
+  <p>Authentic Indian Street Food</p>
+  <span class="stall" id="stall" hidden></span>
+</header>
+<main id="list" aria-live="polite"></main>
+<footer>
+  <span>Order and pay at the counter. Prices in &#8377;.</span>
+  <span id="upd"></span>
+</footer>
+<script id="data" type="application/json">{"v":1,"updated":1791455279544,"stall":{"name":"Desi Swad","number":""},"items":[{"id":"pyaaz-kachori","name":"Pyaaz Kachori with Aloo Sabzi","sub":"","price":40,"available":true},{"id":"moong-dal-kachori","name":"Moong Dal Kachori with Aloo Sabzi","sub":"","price":40,"available":true},{"id":"papdi-chaat","name":"Papdi Chaat","sub":"","price":50,"available":true},{"id":"kheer","name":"Kheer","sub":"","price":40,"available":true},{"id":"item-a57a57","name":"Combo 1: Pyaaz Kachori with Aloo Sabzi + Kheer","sub":"","price":60,"available":true},{"id":"item-0f4c0c","name":"Combo 2: Moong Dal Kachori with Aloo Sabzi + Kheer","sub":"","price":60,"available":true}]}</script>
+<script>
+(function () {
+  'use strict';
+  var list = document.getElementById('list');
+  var shown = -1;
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+  function price(n) { return '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
+  function render(m) {
+    if (!m || shown === m.v) return;
+    shown = m.v;
+    var nm = (m.stall && m.stall.name) || 'Desi Swad';
+    document.getElementById('name').textContent = nm.toLowerCase();
+    document.title = nm + ' menu';
+    var st = document.getElementById('stall');
+    if (m.stall && m.stall.number) { st.textContent = 'Stall ' + m.stall.number; st.hidden = false; } else st.hidden = true;
+    list.textContent = '';
+    (m.items || []).forEach(function (it) {
+      var a = el('article', 'item' + (it.available ? '' : ' out'));
+      a.appendChild(el('h2', '', it.name));
+      if (it.sub) a.appendChild(el('span', 'sub', it.sub));
+      a.appendChild(el('span', 'price', price(it.price)));
+      if (!it.available) a.appendChild(el('span', 'badge', 'Sold out'));
+      list.appendChild(a);
+    });
+    if (!(m.items || []).length) list.appendChild(el('p', 'empty', 'The menu will be here soon.'));
+    var u = document.getElementById('upd');
+    if (m.updated) {
+      var d = new Date(m.updated);
+      u.textContent = 'Menu updated ' + d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+    }
+  }
+  try { render(JSON.parse(document.getElementById('data').textContent)); } catch (e) { /* fall through to fetch */ }
+  // When the page is opened again later, check for a newer menu. The file is about 1 KB.
+  function refresh() {
+    if (!window.fetch) return;
+    fetch('menu.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(render).catch(function () {});
+  }
+  refresh(); // a cached copy of this page may be a few minutes old
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) refresh(); });
+})();
+</script>
+</body>
+</html>
